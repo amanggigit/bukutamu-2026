@@ -27,4 +27,4 @@ export const CATEGORY_OPTIONS = [
 export const ADMIN_PASSWORD = 'admin123';
 
 // Ganti URL ini dengan URL Web App yang Anda dapatkan dari Google Apps Script
-export const GOOGLE_SHEETS_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+export const GOOGLE_SHEETS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVKPI0wv3V24405lVS6rsnEZ_b4yD6mjGEVmBaMPeCgp0gbwNKzQL4X-vJkuxE1tzB/exec';
