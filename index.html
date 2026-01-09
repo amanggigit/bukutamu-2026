@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+```html
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buku Tamu Digital Setda Kab. Tapin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .running-text {
+            animation: scroll-left 20s linear infinite;
+        }
+        
+        @keyframes scroll-left {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .collapsible-content.open {
+            max-height: 200px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- HEADER -->
+    <header class="bg-indigo-800 text-white fixed top-0 left-0 right-0 z-10 shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-building text-xl"></i>
+                <span class="font-semibold text-lg">Setda Kab. Tapin</span>
+            </div>
+            
+            <div class="flex space-x-2">
+                <button id="btn-register" class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-md flex items-center space-x-2 transition-colors">
+                    <i class="fas fa-edit"></i>
+                    <span>Pendaftaran</span>
+                </button>
+                <button id="btn-report" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-md flex items-center space-x-2 transition-colors">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Laporan</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mini Banner -->
+        <div class="container mx-auto px-4 pb-3">
+            <img src="https://i.imghippo.com/files/kPKW4141J.gif" alt="Logo Setda Tapin" class="mx-auto rounded-lg shadow-md">
+        </div>
+        
+        <!-- Tanggal/Waktu -->
+        <div class="bg-indigo-900 py-2 text-center">
+            <div id="datetime" class="text-sm"></div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow container mx-auto px-4 pt-24 pb-16">
+        <!-- PENDAFTARAN TAMU -->
+        <section id="registration-section" class="block">
+            <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 class="text-2xl font-bold text-indigo-800 mb-6 flex items-center">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Pendaftaran Tamu
+                </h2>
+                
+                <form id="guest-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                                <i class="fas fa-user mr-2 text-indigo-600"></i>
+                                Nama Perwakilan
+                            </label>
+                            <input type="text" name="name" required 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                                <i class="fas fa-users mr-2 text-indigo-600"></i>
+                                Jumlah Rombongan
+                            </label>
+                            <input type="number" name="groupSize" required min="1"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                                <i class="fab fa-whatsapp mr-2 text-indigo-600"></i>
+                                Kontak (WhatsApp)
+                            </label>
+                            <input type="tel" name="contact" required placeholder="+62..."
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                                <i class="fas fa-door-open mr-2 text-indigo-600"></i>
+                                Ruangan Tujuan
+                            </label>
+                            <select name="room" required 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                <option value="">Pilih ruangan...</option>
+                                <option value="Gedung A - Kantor Bupati">Gedung A - Kantor Bupati</option>
+                                <option value="Gedung B - DPRD">Gedung B - DPRD</option>
+                                <option value="Gedung C - Dinas">Gedung C - Dinas</option>
+                                <option value="Ruang Rapat">Ruang Rapat</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                                <i class="fas fa-user-tie mr-2 text-indigo-600"></i>
+                                Pejabat Utama Tujuan
+                            </label>
+                            <select name="official" required 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                <option value="">Pilih pejabat...</option>
+                                <option value="Bupati">Bupati</option>
+                                <option value="Wakil Bupati">Wakil Bupati</option>
+                                <option value="Sekretaris Daerah">Sekretaris Daerah</option>
+                                <option value="Asisten">Asisten</option>
+                                <option value="Kepala Dinas">Kepala Dinas</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                                <i class="fas fa-tag mr-2 text-indigo-600"></i>
+                                Kategori Tujuan
+                            </label>
+                            <select name="category" required 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                <option value="">Pilih kategori...</option>
+                                <option value="Resmi">Resmi</option>
+                                <option value="Kerja">Kerja</option>
+                                <option value="Pribadi">Pribadi</option>
+                                <option value="Wisata">Wisata</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                            <i class="fas fa-file-alt mr-2 text-indigo-600"></i>
+                            Perihal Kunjungan
+                        </label>
+                        <textarea name="purpose" rows="3" required
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
+                    </div>
+                    
+                    <div class="pt-2">
+                        <button type="submit" 
+                                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center space-x-2">
+                            <i class="fas fa-paper-plane"></i>
+                            <span>Kirim Pendaftaran</span>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Panduan Collapsible -->
+                <div class="mt-4 border-t pt-4">
+                    <button id="guide-toggle" class="flex items-center text-indigo-600 hover:text-indigo-800 font-medium">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Panduan & Etika Kunjungan
+                    </button>
+                    <div id="guide-content" class="collapsible-content mt-2 text-sm text-gray-600">
+                        <p><strong>Standar Kunjungan:</strong></p>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Selalu datang tepat waktu</li>
+                            <li>Menggunakan pakaian resmi atau formal</li>
+                            <li>Menyertakan surat undangan jika ada</li>
+                            <li>Menginformasikan tujuan kunjungan secara jelas</li>
+                        </ul>
+                        <p class="mt-2"><strong>Etika Kunjungan:</strong></p>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Hormati aturan dan prosedur setempat</li>
+                            <li>Jangan mengganggu pekerjaan pegawai</li>
+                            <li>Tutup telepon seluler atau matikan suara</li>
+                            <li>Terima kasih setelah pertemuan selesai</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAPORAN ADMIN -->
+        <section id="report-section" class="hidden">
+            <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-indigo-800 mb-6 flex items-center">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    Laporan Kunjungan
+                </h2>
+                
+                <!-- Password Protection -->
+                <div id="password-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-lg p-6 w-96">
+                        <h3 class="text-lg font-semibold mb-4">Verifikasi Akses</h3>
+                        <input type="password" id="admin-password" placeholder="Masukkan kata sandi admin..." 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-4">
+                        <div class="flex space-x-2">
+                            <button id="verify-password" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md transition-colors">
+                                Verifikasi
+                            </button>
+                            <button id="cancel-password" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md transition-colors">
+                                Batal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filter Controls -->
+                <div class="mb-6 flex flex-wrap gap-4">
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Filter Ruangan</label>
+                        <select id="filter-room" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            <option value="">Semua Ruangan</option>
+                            <option value="Gedung A - Kantor Bupati">Gedung A - Kantor Bupati</option>
+                            <option value="Gedung B - DPRD">Gedung B - DPRD</option>
+                            <option value="Gedung C - Dinas">Gedung C - Dinas</option>
+                            <option value="Ruang Rapat">Ruang Rapat</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Filter Kategori</label>
+                        <select id="filter-category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            <option value="">Semua Kategori</option>
+                            <option value="Resmi">Resmi</option>
+                            <option value="Kerja">Kerja</option>
+                            <option value="Pribadi">Pribadi</option>
+                            <option value="Wisata">Wisata</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-end">
+                        <button id="reset-filter" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md transition-colors">
+                            <i class="fas fa-redo mr-2"></i>
+                            Reset Filter
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-end ml-auto">
+                        <button id="export-csv" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors flex items-center space-x-2">
+                            <i class="fas fa-download"></i>
+                            <span>Ekspor CSV</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Data Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rombongan</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kontak</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ruangan</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pejabat</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perihal</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="guest-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- No Data Message -->
+                <div id="no-data-message" class="text-center py-12 text-gray-500 hidden">
+                    <i class="fas fa-inbox text-4xl mb-4"></i>
+                    <p>Tidak ada data kunjungan.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-indigo-800 text-white py-3 fixed bottom-0 left-0 right-0">
+        <div class="container mx-auto px-4 relative overflow-hidden h-10">
+            <div class="running-text whitespace-nowrap absolute top-0 left-0 w-max">
+                <span class="inline-block px-4">Selamat Datang di Buku Tamu Digital Setda Kab. Tapin | Hubungi kami di 0512-1234567 | Email: bukutamu@tapin.go.id | Website: www.tapin.go.id</span>
+            </div>
+        </div>
+        <div class="text-center text-sm pt-2 border-t border-indigo-700">
+            © 2025 Protokol dan Komunikasi Pimpinan. Sekretariat Daerah Kabupaten Tapin.
+        </div>
+    </footer>
+
+    <script type="module">
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Global Variables
+        let currentView = 'registration';
+        const ADMIN_PASSWORD = 'admin123'; // Change this for production
+        
+        // DOM Elements
+        const btnRegister = document.getElementById('btn-register');
+        const btnReport = document.getElementById('btn-report');
+        const registrationSection = document.getElementById('registration-section');
+        const reportSection = document.getElementById('report-section');
+        const guestForm = document.getElementById('guest-form');
+        const guideToggle = document.getElementById('guide-toggle');
+        const guideContent = document.getElementById('guide-content');
+        const passwordModal = document.getElementById('password-modal');
+        const verifyPasswordBtn = document.getElementById('verify-password');
+        const cancelPasswordBtn = document.getElementById('cancel-password');
+        const filterRoom = document.getElementById('filter-room');
+        const filterCategory = document.getElementById('filter-category');
+        const resetFilterBtn = document.getElementById('reset-filter');
+        const exportCsvBtn = document.getElementById('export-csv');
+        const guestTableBody = document.getElementById('guest-table-body');
+        const noDataMessage = document.getElementById('no-data-message');
+
+        // Update datetime display
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('datetime').textContent = now.toLocaleDateString('id-ID', options);
+        }
+
+        // Navigation functions
+        function showRegistration() {
+            currentView = 'registration';
+            registrationSection.classList.remove('hidden');
+            reportSection.classList.add('hidden');
+            btnRegister.classList.replace('bg-gray-600', 'bg-indigo-600');
+            btnReport.classList.replace('bg-indigo-600', 'bg-gray-600');
+        }
+
+        function showReport() {
+            currentView = 'report';
+            registrationSection.classList.add('hidden');
+            reportSection.classList.remove('hidden');
+            btnReport.classList.replace('bg-gray-600', 'bg-indigo-600');
+            btnRegister.classList.replace('bg-indigo-600', 'bg-gray-600');
+        }
+
+        // Event Listeners
+        btnRegister.addEventListener('click', showRegistration);
+        btnReport.addEventListener('click', () => {
+            passwordModal.classList.remove('hidden');
+        });
+
+        guideToggle.addEventListener('click', () => {
+            guideContent.classList.toggle('open');
+        });
+
+        verifyPasswordBtn.addEventListener('click', () => {
+            const enteredPassword = document.getElementById('admin-password').value;
+            if (enteredPassword === ADMIN_PASSWORD) {
+                passwordModal.classList.add('hidden');
+                showReport();
+            } else {
+                alert('Kata sandi salah!');
+            }
+        });
+
+        cancelPasswordBtn.addEventListener('click', () => {
+            passwordModal.classList.add('hidden');
+        });
+
+        // Form submission
+        guestForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(guestForm);
+            const guestData = {
+                name: formData.get('name'),
+                groupSize: parseInt(formData.get('groupSize')),
+                contact: formData.get('contact'),
+                room: formData.get('room'),
+                official: formData.get('official'),
+                category: formData.get('category'),
+                purpose: formData.get('purpose'),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            try {
+                await db.collection('guest_book').add(guestData);
+                guestForm.reset();
+                alert('Pendaftaran berhasil! Terima kasih.');
+            } catch (error) {
+                console.error('Error adding document: ', error);
+                alert('Terjadi kesalahan saat menyimpan data.');
+            }
+        });
+
+        // Report functionality
+        let guests = [];
+        let filteredGuests = [];
+
+        // Fetch and display guests
+        async function fetchGuests() {
+            try {
+                const snapshot = await db.collection('guest_book')
+                    .orderBy('timestamp', 'desc')
+                    .get();
+                
+                guests = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    timestamp: doc.data().timestamp ? doc.data().timestamp.toDate() : new Date()
+                }));
+                
+                applyFilters();
+            } catch (error) {
+                console.error('Error fetching documents: ', error);
+            }
+        }
+
+        function applyFilters() {
+            const roomFilter = filterRoom.value;
+            const categoryFilter = filterCategory.value;
+            
+            filteredGuests = guests.filter(guest => {
+                const matchesRoom = !roomFilter || guest.room === roomFilter;
+                const matchesCategory = !categoryFilter || guest.category === categoryFilter;
+                return matchesRoom && matchesCategory;
+            });
+            
+            renderGuestTable();
+        }
+
+        function renderGuestTable() {
+            if (filteredGuests.length === 0) {
+                guestTableBody.innerHTML = '';
+                noDataMessage.classList.remove('hidden');
+                return;
+            }
+            
+            noDataMessage.classList.add('hidden');
+            guestTableBody.innerHTML = filteredGuests.map(guest => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">${guest.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${guest.groupSize} orang</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="https://wa.me/${guest.contact.replace('+', '')}" 
+                           class="text-green-600 hover:text-green-800 underline">
+                            ${guest.contact}
+                        </a>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">${guest.room}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${guest.official}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${guest.category}</td>
+                    <td class="px-6 py-4 whitespace-nowrap truncate max-w-xs">${guest.purpose}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDateTime(guest.timestamp)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <button onclick="deleteGuest('${guest.id}')" 
+                                class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function formatDateTime(date) {
+            return date.toLocaleString('id-ID', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Delete guest function
+        window.deleteGuest = async function(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                try {
+                    await db.collection('guest_book').doc(id).delete();
+                    fetchGuests(); // Refresh the list
+                } catch (error) {
+                    console.error('Error deleting document: ', error);
+                    alert('Terjadi kesalahan saat menghapus data.');
+                }
+            }
+        };
+
+        // Export to CSV
+        exportCsvBtn.addEventListener('click', () => {
+            if (filteredGuests.length === 0) {
+                alert('Tidak ada data untuk diekspor.');
+                return;
+            }
+            
+            const csvContent = [
+                ['Nama', 'Rombongan', 'Kontak', 'Ruangan', 'Pejabat', 'Kategori', 'Perihal', 'Waktu'],
+                ...filteredGuests.map(guest => [
+                    guest.name,
+                    `${guest.groupSize} orang`,
+                    guest.contact,
+                    guest.room,
+                    guest.official,
+                    guest.category,
+                    `"${guest.purpose}"`,
+                    formatDateTime(guest.timestamp)
+                ])
+            ].map(row => row.join(',')).join('
+');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `bukutamu_tapin_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        });
+
+        // Filter event listeners
+        filterRoom.addEventListener('change', applyFilters);
+        filterCategory.addEventListener('change', applyFilters);
+
+        resetFilterBtn.addEventListener('click', () => {
+            filterRoom.value = '';
+            filterCategory.value = '';
+            applyFilters();
+        });
+
+        // Initialize
+        updateDateTime();
+        setInterval(updateDateTime, 60000); // Update every minute
+        fetchGuests(); // Initial load
+    </script>
+</body>
+</html>
