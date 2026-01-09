@@ -1,0 +1,8 @@
+
+{
+  "name": "Buku Tamu Digital Setda Kab. Tapin",
+  "description": "A modern digital guestbook application for the Secretariat of Tapin Regency, featuring AI-assisted visit summaries, secure admin reporting, and data visualization.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
